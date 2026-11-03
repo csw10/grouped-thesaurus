@@ -219,6 +219,15 @@
 
     const groups = [];
     for (const e of entries) {
+      const senses = mwSenses(e);
+      if (senses.length) {
+        for (const sn of senses) {
+          if (!sn.syns.length && !sn.ants.length) continue;
+          groups.push({ pos: e.fl || "", def: sn.def, syns: sn.syns, ants: sn.ants });
+        }
+        continue;
+      }
+      // Fallback: summary fields (shortdef holds at most three definitions).
       const defs = e.shortdef || [];
       const syns = e.meta.syns || [];
       const ants = e.meta.ants || [];
@@ -229,6 +238,45 @@
       }
     }
     return { groups, suggestions: [] };
+  }
+
+  // Merriam-Webster's text uses inline markup like {bc}, {it}word{/it}, {sx|word||}.
+  function mwText(t) {
+    return String(t || "")
+      .replace(/\{(?:sx|a_link|d_link|i_link|et_link|mat|dxt)\|([^|}]*)[^}]*\}/g, "$1")
+      .replace(/\{[^}]*\}/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // Every sense of an entry, in order, each with its own definition and word lists.
+  function mwSenses(entry) {
+    const out = [];
+    const words = (lists) => {
+      const seen = new Set();
+      const res = [];
+      for (const list of lists || []) for (const item of list || []) {
+        const w = item && item.wd;
+        if (w && !seen.has(w.toLowerCase())) { seen.add(w.toLowerCase()); res.push(w); }
+      }
+      return res;
+    };
+    const visit = (node) => {
+      if (!Array.isArray(node)) return;
+      if (node[0] === "sense" && node[1] && typeof node[1] === "object") {
+        const sn = node[1];
+        const dt = (sn.dt || []).find((d) => Array.isArray(d) && d[0] === "text");
+        out.push({
+          def: dt ? mwText(dt[1]) : "",
+          syns: words(sn.syn_list),
+          ants: words(sn.ant_list),
+        });
+        return;
+      }
+      for (const child of node) visit(child);
+    };
+    for (const d of entry.def || []) visit(d.sseq);
+    return out;
   }
 
   async function fromFreeDictionary(word) {
@@ -348,6 +396,7 @@
 
   async function useWord(word) {
     if (!state.inWord) {
+      word = word.replace(/[()]/g, "").replace(/\s+/g, " ").trim();
       try { await navigator.clipboard.writeText(word); toast(`Copied “${word}”`); } catch (e) { toast(word); }
       return;
     }
@@ -357,6 +406,7 @@
         range.load("text");
         await ctx.sync();
         const text = range.text || "";
+        word = word.replace(/[()]/g, "").replace(/\s+/g, " ").trim(); // "provide (for)" -> "provide for"
         let replacement = word;
         if (text.trim()) {
           // Keep surrounding spaces/punctuation and the original capitalisation.
