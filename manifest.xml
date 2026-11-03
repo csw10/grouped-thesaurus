@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Before using: replace every https://YOUR-USERNAME.github.io/grouped-thesaurus with the address where you host these files. -->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+  <Id>3278a9ac-2033-4dd6-b908-043d7f0aacbd</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Personal</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Grouped Thesaurus"/>
+  <Description DefaultValue="Synonyms grouped by meaning, with one-click replace."/>
+  <IconUrl DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/"/>
+  <Hosts>
+    <Host Name="Document"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="Home.Url"/>
+          </GetStarted>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="GroupedThesaurus.Group">
+                <Label resid="Group.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16"/>
+                  <bt:Image size="32" resid="Icon.32"/>
+                  <bt:Image size="80" resid="Icon.80"/>
+                </Icon>
+                <Control xsi:type="Button" id="GroupedThesaurus.Open">
+                  <Label resid="Button.Label"/>
+                  <Supertip>
+                    <Title resid="Button.Label"/>
+                    <Description resid="Button.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16"/>
+                    <bt:Image size="32" resid="Icon.32"/>
+                    <bt:Image size="80" resid="Icon.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>GroupedThesaurusPane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-16.png"/>
+        <bt:Image id="Icon.32" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-32.png"/>
+        <bt:Image id="Icon.80" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/commands.html"/>
+        <bt:Url id="Home.Url" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Group.Label" DefaultValue="Thesaurus"/>
+        <bt:String id="Button.Label" DefaultValue="Grouped Thesaurus"/>
+        <bt:String id="GetStarted.Title" DefaultValue="Grouped Thesaurus is ready"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="Button.Tooltip" DefaultValue="Show synonyms grouped by meaning for the selected word."/>
+        <bt:String id="GetStarted.Description" DefaultValue="Click Grouped Thesaurus on the Home tab, then select a word."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

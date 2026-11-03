@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grouped Thesaurus</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f5f6f8; --line: #e1e3e8; --text: #1f2328; --muted: #646a73;
+    --accent: #2b579a; --accent-soft: #e8eef8; --chip: #ffffff; --chip-hover: #e8eef8; --danger: #b42318;
+  }
+  :root[data-theme="dark"] {
+    --bg: #1f1f1f; --surface: #2a2a2a; --line: #3b3b3b; --text: #e8e8e8; --muted: #a0a0a0;
+    --accent: #8fb3ea; --accent-soft: #2c3646; --chip: #262626; --chip-hover: #2f3a4b; --danger: #f2877e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 13px/1.45 "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+  [hidden] { display: none !important; }
+  button { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, summary:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+
+  .top {
+    position: sticky; top: 0; z-index: 2; background: var(--bg);
+    padding: 10px 12px 8px; border-bottom: 1px solid var(--line);
+  }
+  .searchrow { display: flex; gap: 6px; }
+  .back, .gear {
+    flex: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center;
+  }
+  .back:disabled { opacity: 0.35; cursor: default; }
+  form { flex: 1; display: flex; min-width: 0; }
+  #q {
+    flex: 1; min-width: 0; height: 30px; padding: 0 9px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit;
+  }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+  .settings { padding: 10px 12px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+  .settings label { display: block; margin-bottom: 8px; }
+  .settings input[type="text"] {
+    width: 100%; height: 28px; margin-top: 3px; padding: 0 8px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit;
+  }
+  .settings .check { display: flex; gap: 6px; align-items: center; }
+  .settings p { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+  .settings a { color: var(--accent); }
+  .settings .row { display: flex; gap: 6px; }
+  .btn {
+    height: 28px; padding: 0 12px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+  }
+  .btn.ghost { background: transparent; color: var(--accent); }
+
+  main { padding: 4px 12px 24px; }
+  .word { font-size: 20px; font-weight: 600; margin: 10px 0 0; word-break: break-word; }
+  .source { color: var(--muted); font-size: 11px; margin: 2px 0 6px; }
+  .status { color: var(--muted); padding: 18px 0; }
+  .status.error { color: var(--danger); }
+
+  .sense { padding: 10px 0 12px; border-top: 1px solid var(--line); }
+  .sense:first-of-type { border-top: 0; }
+  .sense-head { margin-bottom: 7px; }
+  .pos {
+    display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 0 6px; margin-right: 6px;
+  }
+  .def { color: var(--text); }
+  .def.other { color: var(--muted); font-style: italic; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--chip); overflow: hidden; }
+  .chip:hover { border-color: var(--accent); }
+  .chip button { border: 0; background: transparent; cursor: pointer; padding: 3px 9px; }
+  .chip .use:hover { background: var(--chip-hover); }
+  .chip .look { padding: 3px 7px 3px 4px; color: var(--muted); font-size: 11px; }
+  .chip .look:hover { color: var(--accent); background: var(--chip-hover); }
+  .more { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 3px 4px; }
+
+  details.ants { margin-top: 8px; }
+  details.ants summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-bottom: 5px; width: max-content; }
+  .suggest { margin-top: 6px; }
+
+  .toast {
+    position: fixed; left: 12px; right: 12px; bottom: 12px; padding: 8px 12px; border-radius: 6px;
+    background: var(--text); color: var(--bg); font-size: 12px; text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="searchrow">
+      <button class="back" id="back" type="button" title="Back" aria-label="Back" disabled>←</button>
+      <form id="form" role="search">
+        <input id="q" type="search" placeholder="Look up a word" aria-label="Word to look up" autocomplete="off" spellcheck="false">
+      </form>
+      <button class="gear" id="gear" type="button" title="Settings" aria-label="Settings" aria-expanded="false">⚙</button>
+    </div>
+    <div class="hint" id="hint">Select a word in your document, or type one above.</div>
+  </div>
+
+  <section class="settings" id="settings" hidden>
+    <label>Merriam-Webster Thesaurus API key
+      <input type="text" id="key" placeholder="Paste your key" autocomplete="off" spellcheck="false">
+    </label>
+    <p>Optional but recommended: much richer synonyms. Free for non-commercial use;
+      register at <a href="https://dictionaryapi.com/register/index" target="_blank" rel="noopener">dictionaryapi.com</a>
+      and request the <em>Collegiate Thesaurus</em>. Without a key, the add-in uses the free dictionaryapi.dev data.</p>
+    <label class="check"><input type="checkbox" id="follow"> Look up words as I select them</label>
+    <div class="row">
+      <button class="btn" id="save" type="button">Save</button>
+      <button class="btn ghost" id="cancel" type="button">Close</button>
+    </div>
+  </section>
+
+  <main id="main" aria-live="polite"></main>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const CHIP_LIMIT = 12;
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("gt." + k); return v === null ? d : v; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem("gt." + k, v); } catch (e) { /* ignore */ } },
+  };
+  const state = {
+    key: store.get("mwKey", ""),
+    follow: store.get("follow", "1") === "1",
+    inWord: false,
+    current: "",
+    history: [],
+    ignoreNextSelection: null,
+    lookupId: 0,
+  };
+
+  // ------------------------------------------------------------ small helpers
+  function el(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === "class") n.className = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? "" : String(v));
+    }
+    for (const c of kids) if (c !== null && c !== undefined && c !== false) n.append(c instanceof Node ? c : String(c));
+    return n;
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (t.hidden = true), 2200);
+  }
+
+  function debounce(fn, ms) {
+    let t;
+    return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+  }
+
+  // A selection worth looking up: 1-3 words of letters, ignoring surrounding punctuation.
+  function cleanWord(text) {
+    if (!text) return "";
+    const core = text.trim().replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, "");
+    if (!core || core.length > 40) return "";
+    if (!/^[A-Za-z][A-Za-z'’ -]*$/.test(core)) return "";
+    if (core.split(/\s+/).length > 3) return "";
+    return core.replace(/’/g, "'");
+  }
+
+  function matchCase(original, word) {
+    if (original.length > 1 && original === original.toUpperCase() && /[A-Z]/.test(original)) return word.toUpperCase();
+    if (/^[A-Z]/.test(original)) return word.charAt(0).toUpperCase() + word.slice(1);
+    return word;
+  }
+
+  function setTheme() {
+    let dark = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;
+    try {
+      const bg = Office.context.officeTheme && Office.context.officeTheme.bodyBackgroundColor;
+      const m = bg && bg.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+      if (m) {
+        const [r, g, b] = m.slice(1).map((h) => parseInt(h, 16));
+        dark = 0.299 * r + 0.587 * g + 0.114 * b < 128;
+      }
+    } catch (e) { /* not in Office */ }
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+  }
+
+  // ------------------------------------------------------------ data sources
+  // Each returns { groups: [{ pos, def, syns: [], ants: [] }], suggestions: [] }
+  async function fromMerriamWebster(word) {
+    const url = `https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${encodeURIComponent(word.toLowerCase())}?key=${encodeURIComponent(state.key)}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch (e) {
+      const err = new Error(/key/i.test(text) ? "Merriam-Webster rejected the API key. Check it in settings (it must be a Thesaurus key)." : "Merriam-Webster returned an unexpected response.");
+      err.keyProblem = true;
+      throw err;
+    }
+    if (!Array.isArray(data)) throw new Error("Merriam-Webster returned an unexpected response.");
+    if (data.length && typeof data[0] === "string") return { groups: [], suggestions: data.slice(0, 10) };
+
+    const target = word.toLowerCase();
+    const base = (e) => String((e.meta && e.meta.id) || "").split(":")[0].toLowerCase();
+    let entries = data.filter((e) => e && e.meta && base(e) === target);
+    if (!entries.length) entries = data.filter((e) => e && e.meta && (e.meta.stems || []).map((s) => s.toLowerCase()).includes(target));
+    if (!entries.length) entries = data.filter((e) => e && e.meta);
+
+    const groups = [];
+    for (const e of entries) {
+      const defs = e.shortdef || [];
+      const syns = e.meta.syns || [];
+      const ants = e.meta.ants || [];
+      const n = Math.max(defs.length, syns.length);
+      for (let i = 0; i < n; i++) {
+        if (!(syns[i] && syns[i].length) && !(ants[i] && ants[i].length)) continue;
+        groups.push({ pos: e.fl || "", def: defs[i] || "", syns: syns[i] || [], ants: ants[i] || [] });
+      }
+    }
+    return { groups, suggestions: [] };
+  }
+
+  async function fromFreeDictionary(word) {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`);
+    if (res.status === 404) return { groups: [], suggestions: [] };
+    if (!res.ok) throw new Error(`The dictionary service returned an error (${res.status}).`);
+    const data = await res.json();
+    const groups = [];
+    for (const entry of Array.isArray(data) ? data : []) {
+      for (const m of entry.meanings || []) {
+        const used = new Set();
+        for (const d of m.definitions || []) {
+          const syns = (d.synonyms || []).filter((s) => s.toLowerCase() !== word.toLowerCase());
+          if (!syns.length && !(d.antonyms || []).length) continue;
+          syns.forEach((s) => used.add(s.toLowerCase()));
+          groups.push({ pos: m.partOfSpeech || "", def: d.definition || "", syns, ants: d.antonyms || [] });
+        }
+        const rest = (m.synonyms || []).filter((s) => !used.has(s.toLowerCase()) && s.toLowerCase() !== word.toLowerCase());
+        const restAnts = m.antonyms || [];
+        if (rest.length || restAnts.length) groups.push({ pos: m.partOfSpeech || "", def: null, syns: rest, ants: restAnts });
+      }
+    }
+    return { groups, suggestions: [] };
+  }
+
+  // ------------------------------------------------------------ rendering
+  function chip(word) {
+    return el("span", { class: "chip" },
+      el("button", { type: "button", class: "use", title: state.inWord ? `Replace with “${word}”` : `Copy “${word}”`, onclick: () => useWord(word) }, word),
+      el("button", { type: "button", class: "look", title: `Look up “${word}”`, "aria-label": `Look up ${word}`, onclick: () => lookup(word, true) }, "↗")
+    );
+  }
+
+  function chipList(words) {
+    const box = el("div", { class: "chips" });
+    const unique = [...new Map(words.map((w) => [w.toLowerCase(), w])).values()];
+    unique.slice(0, CHIP_LIMIT).forEach((w) => box.append(chip(w)));
+    if (unique.length > CHIP_LIMIT) {
+      const more = el("button", { type: "button", class: "more" }, `+${unique.length - CHIP_LIMIT} more`);
+      more.addEventListener("click", () => {
+        more.remove();
+        unique.slice(CHIP_LIMIT).forEach((w) => box.append(chip(w)));
+      });
+      box.append(more);
+    }
+    return box;
+  }
+
+  function render(word, result, sourceName) {
+    const main = $("main");
+    main.replaceChildren(
+      el("h1", { class: "word" }, word),
+      el("div", { class: "source" }, sourceName)
+    );
+    if (!result.groups.length) {
+      main.append(el("div", { class: "status" }, `No synonyms found for “${word}”.`));
+      if (result.suggestions.length) {
+        main.append(el("div", { class: "hint" }, "Did you mean:"),
+          el("div", { class: "chips suggest" }, ...result.suggestions.map((s) =>
+            el("span", { class: "chip" }, el("button", { type: "button", class: "use", onclick: () => lookup(s, true) }, s)))));
+      }
+      return;
+    }
+    for (const g of result.groups) {
+      const sec = el("section", { class: "sense" },
+        el("div", { class: "sense-head" },
+          g.pos ? el("span", { class: "pos" }, g.pos) : null,
+          g.def === null ? el("span", { class: "def other" }, "other synonyms") : el("span", { class: "def" }, g.def)
+        )
+      );
+      if (g.syns.length) sec.append(chipList(g.syns));
+      if (g.ants.length) {
+        sec.append(el("details", { class: "ants" }, el("summary", null, `Antonyms (${g.ants.length})`), chipList(g.ants)));
+      }
+      main.append(sec);
+    }
+  }
+
+  function setStatus(text, isError) {
+    $("main").replaceChildren(el("div", { class: `status${isError ? " error" : ""}` }, text));
+  }
+
+  // ------------------------------------------------------------ actions
+  async function lookup(word, pushHistory) {
+    word = (word || "").trim();
+    if (!word) return;
+    if (pushHistory && state.current && state.current.toLowerCase() !== word.toLowerCase()) state.history.push(state.current);
+    $("back").disabled = state.history.length === 0;
+    state.current = word;
+    $("q").value = word;
+    const id = ++state.lookupId;
+    setStatus("Looking up…");
+    try {
+      let result;
+      let source;
+      if (state.key) {
+        try {
+          result = await fromMerriamWebster(word);
+          source = "Merriam-Webster’s Collegiate Thesaurus";
+        } catch (err) {
+          if (err.keyProblem) throw err;
+          // Network/CORS failure: fall back so the pane still works.
+          result = await fromFreeDictionary(word);
+          source = "dictionaryapi.dev (Merriam-Webster unreachable)";
+        }
+      } else {
+        result = await fromFreeDictionary(word);
+        source = "dictionaryapi.dev — add a Merriam-Webster key in ⚙ for fuller results";
+      }
+      if (id !== state.lookupId) return;
+      render(word, result, source);
+    } catch (err) {
+      if (id !== state.lookupId) return;
+      setStatus(err.message || "Couldn’t look that up. Check your connection and try again.", true);
+    }
+  }
+
+  async function useWord(word) {
+    if (!state.inWord) {
+      try { await navigator.clipboard.writeText(word); toast(`Copied “${word}”`); } catch (e) { toast(word); }
+      return;
+    }
+    try {
+      await Word.run(async (ctx) => {
+        const range = ctx.document.getSelection();
+        range.load("text");
+        await ctx.sync();
+        const text = range.text || "";
+        let replacement = word;
+        if (text.trim()) {
+          // Keep surrounding spaces/punctuation and the original capitalisation.
+          const m = text.match(/^(\s*)([^A-Za-z]*)(.*?)([^A-Za-z]*)(\s*)$/s);
+          replacement = m[1] + m[2] + matchCase(m[3], word) + m[4] + m[5];
+        }
+        const inserted = range.insertText(replacement, "Replace");
+        state.ignoreNextSelection = cleanWord(replacement).toLowerCase();
+        inserted.select();
+        await ctx.sync();
+      });
+    } catch (err) {
+      toast("Couldn’t insert the word. Click in the document and try again.");
+    }
+  }
+
+  const onSelectionChanged = debounce(async () => {
+    if (!state.follow || !state.inWord) return;
+    try {
+      await Word.run(async (ctx) => {
+        const range = ctx.document.getSelection();
+        range.load("text");
+        await ctx.sync();
+        const word = cleanWord(range.text);
+        if (!word) return;
+        if (state.ignoreNextSelection && word.toLowerCase() === state.ignoreNextSelection) {
+          state.ignoreNextSelection = null; // our own replacement: keep showing the same list
+          return;
+        }
+        state.ignoreNextSelection = null;
+        if (word.toLowerCase() === state.current.toLowerCase()) return;
+        state.history = [];
+        lookup(word, false);
+      });
+    } catch (e) { /* selection unreadable (e.g. in a header); ignore */ }
+  }, 300);
+
+  // ------------------------------------------------------------ wiring
+  $("form").addEventListener("submit", (e) => { e.preventDefault(); lookup($("q").value, true); });
+  $("back").addEventListener("click", () => {
+    const prev = state.history.pop();
+    if (prev) lookup(prev, false);
+    $("back").disabled = state.history.length === 0;
+  });
+  function openSettings(open) {
+    $("settings").hidden = !open;
+    $("gear").setAttribute("aria-expanded", String(open));
+    if (open) { $("key").value = state.key; $("follow").checked = state.follow; $("key").focus(); }
+  }
+  $("gear").addEventListener("click", () => openSettings($("settings").hidden));
+  $("cancel").addEventListener("click", () => openSettings(false));
+  $("save").addEventListener("click", () => {
+    state.key = $("key").value.trim();
+    state.follow = $("follow").checked;
+    store.set("mwKey", state.key);
+    store.set("follow", state.follow ? "1" : "0");
+    openSettings(false);
+    toast("Settings saved");
+    if (state.current) lookup(state.current, false);
+  });
+
+  function start(inWord) {
+    state.inWord = inWord;
+    setTheme();
+    if (!inWord) {
+      $("hint").textContent = "Not running inside Word: type a word above. Clicking a synonym copies it.";
+      return;
+    }
+    Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, onSelectionChanged);
+    try {
+      Office.context.document.addHandlerAsync(Office.EventType.OfficeThemeChanged || "officeThemeChanged", setTheme);
+    } catch (e) { /* not supported everywhere */ }
+    onSelectionChanged();
+  }
+
+  if (window.Office && Office.onReady) {
+    Office.onReady((info) => start(info && info.host === Office.HostType.Word));
+  } else {
+    start(false);
+  }
+})();
+</script>
+</body>
+</html>
