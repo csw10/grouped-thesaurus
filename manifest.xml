@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Before using: replace every https://YOUR-USERNAME.github.io/grouped-thesaurus with the address where you host these files. -->
+<!-- Before using: replace every https://csw10.github.io/grouped-thesaurus with the address where you host these files. -->
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
@@ -11,14 +11,14 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Grouped Thesaurus"/>
   <Description DefaultValue="Synonyms grouped by meaning, with one-click replace."/>
-  <IconUrl DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/"/>
+  <IconUrl DefaultValue="https://csw10.github.io/grouped-thesaurus/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://csw10.github.io/grouped-thesaurus/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://csw10.github.io/grouped-thesaurus/"/>
   <Hosts>
     <Host Name="Document"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/taskpane.html"/>
+    <SourceLocation DefaultValue="https://csw10.github.io/grouped-thesaurus/taskpane.html"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -64,14 +64,14 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-16.png"/>
-        <bt:Image id="Icon.32" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-32.png"/>
-        <bt:Image id="Icon.80" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/assets/icon-80.png"/>
+        <bt:Image id="Icon.16" DefaultValue="https://csw10.github.io/grouped-thesaurus/assets/icon-16.png"/>
+        <bt:Image id="Icon.32" DefaultValue="https://csw10.github.io/grouped-thesaurus/assets/icon-32.png"/>
+        <bt:Image id="Icon.80" DefaultValue="https://csw10.github.io/grouped-thesaurus/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/taskpane.html"/>
-        <bt:Url id="Commands.Url" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/commands.html"/>
-        <bt:Url id="Home.Url" DefaultValue="https://YOUR-USERNAME.github.io/grouped-thesaurus/"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://csw10.github.io/grouped-thesaurus/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://csw10.github.io/grouped-thesaurus/commands.html"/>
+        <bt:Url id="Home.Url" DefaultValue="https://csw10.github.io/grouped-thesaurus/"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="Thesaurus"/>
